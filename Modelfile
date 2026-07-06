@@ -1,0 +1,11 @@
+# Ollama Modelfile — used to register the fine-tuned adapter with Ollama for local inference.
+#
+# Usage (after training completes):
+#   1. Copy your adapter weights to ./complete_checkpoint
+#   2. Run: ollama create my-lora-model -f Modelfile
+#   3. Chat: ollama run my-lora-model
+#
+# Update the ADAPTER path below if you saved your checkpoint to a different directory.
+
+FROM llama3.2:1b
+ADAPTER ./complete_checkpoint

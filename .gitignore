@@ -1,0 +1,28 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Training outputs (can be large — add to git LFS or exclude entirely)
+checkpoints/
+complete_checkpoint/
+final_model/
+workspace/
+
+# Data files (generated — do not commit)
+tm1data.json
+qualityresults.json
+data/instruction.json
+data/instructionquality.json
+
+# PDF source documents
+*.pdf
+
+# Environment variables (NEVER commit secrets)
+.env
