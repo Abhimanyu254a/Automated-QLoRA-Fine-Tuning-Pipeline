@@ -2,7 +2,6 @@
 
 A fully self-contained, end-to-end pipeline for fine-tuning a large language model on your own domain-specific documentation using **LoRA** (Low-Rank Adaptation) and **QLoRA** (4-bit quantisation). This project takes a raw PDF, generates a high-quality instruction dataset with a local LLM, and produces a fine-tuned model you can run locally with Ollama — no cloud API costs required during data generation.
 
-> **Use case demonstrated:** Fine-tuning Meta's Llama 3.2-1B on the IBM TM1/Planning Analytics developer guide to create a domain expert assistant for TM1 engineers.
 
 ---
 
@@ -259,7 +258,3 @@ ollama run my-lora-model
 → Ensure `complete_checkpoint/` is in the same directory as `Modelfile`, or update the `ADAPTER` path in `Modelfile`.
 
 ---
-
-## License
-
-This project is licensed under the **MIT License**.
