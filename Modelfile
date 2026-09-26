@@ -7,5 +7,5 @@
 #
 # Update the ADAPTER path below if you saved your checkpoint to a different directory.
 
-FROM llama3.2:1b
+FROM qwen2.5:1.5b
 ADAPTER ./complete_checkpoint

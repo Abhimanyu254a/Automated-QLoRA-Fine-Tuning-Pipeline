@@ -30,7 +30,7 @@ def llm_call(record: str) -> dict:
         A dict with 'accuracy' and 'style' keys, each containing 'score' and 'explanation'.
     """
     stream = completion(
-        model="ollama_chat/qwen2.5:14b",
+        model="ollama_chat/qwen2.5:1.5b",
         messages=[
             {
                 "role": "user",

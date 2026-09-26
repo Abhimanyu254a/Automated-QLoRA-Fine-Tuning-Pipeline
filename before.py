@@ -3,7 +3,7 @@ from colorama import Fore
 
 def llm_call(prompt: str) -> None:
     stream = completion(
-        model="ollama_chat/tm1bud-dq300target:latest",
+        model="ollama_chat/qwen2.5:1.5b",
         # top_k=1,
         messages=[
             {

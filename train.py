@@ -11,16 +11,11 @@ from peft import LoraConfig, prepare_model_for_kbit_training
 # Load environment variables from .env file if present
 load_dotenv()
 
-HF_TOKEN = os.environ.get("HF_TOKEN", "")
-if not HF_TOKEN:
-    raise EnvironmentError(
-        "HF_TOKEN environment variable is not set.\n"
-        "Create a .env file with HF_TOKEN=<your_token> or export it in your shell."
-    )
+HF_TOKEN = os.environ.get("HF_TOKEN", None)
 
 NUM_PROC = int(os.environ.get("NUM_PROC", "4"))
-BASE_MODEL = os.environ.get("BASE_MODEL", "meta-llama/Llama-3.2-1B")
-OUTPUT_DIR = os.environ.get("OUTPUT_DIR", "meta-llama-Llama-3.2-1B-SFT")
+BASE_MODEL = os.environ.get("BASE_MODEL", "Qwen/Qwen2.5-1.5B")
+OUTPUT_DIR = os.environ.get("OUTPUT_DIR", "qwen2.5-1.5b-SFT")
 NUM_EPOCHS = int(os.environ.get("NUM_EPOCHS", "50"))
 
 # ── Dataset ──────────────────────────────────────────────────────────────────
@@ -63,7 +58,8 @@ def format_chat_template(batch: dict, tokenizer) -> dict:
             {"role": "user", "content": question},
             {"role": "assistant", "content": answer},
         ]
-        tokenizer.chat_template = LLAMA3_CHAT_TEMPLATE
+        if not getattr(tokenizer, "chat_template", None):
+            tokenizer.chat_template = LLAMA3_CHAT_TEMPLATE
         text = tokenizer.apply_chat_template(messages, tokenize=False)
         samples.append(text)
 
@@ -115,8 +111,8 @@ model = prepare_model_for_kbit_training(model)
 
 # ── LoRA config ───────────────────────────────────────────────────────────────
 peft_config = LoraConfig(
-    r=256,
-    lora_alpha=512,
+    r=16,
+    lora_alpha=32,
     lora_dropout=0.05,
     target_modules="all-linear",
     task_type="CAUSAL_LM",
@@ -131,12 +127,14 @@ trainer = SFTTrainer(
         output_dir=OUTPUT_DIR,
         num_train_epochs=NUM_EPOCHS,
         dataset_text_field="text",
+        max_seq_length=1024,
         per_device_train_batch_size=2,
         gradient_accumulation_steps=4,
         logging_steps=10,
         save_steps=100,
         save_total_limit=2,
         bf16=True,
+        optim="paged_adamw_8bit",
         lr_scheduler_type="cosine",
         warmup_ratio=0.03,
         report_to="none",  # set to "wandb" or "tensorboard" if you want tracking

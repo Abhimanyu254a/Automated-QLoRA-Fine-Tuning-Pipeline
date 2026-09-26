@@ -10,7 +10,7 @@ A fully self-contained, end-to-end pipeline for fine-tuning a large language mod
 | Feature | Detail |
 |---|---|
 | 📄 **PDF → Dataset** | Converts any PDF into structured text chunks using `docling` |
-| 🤖 **Synthetic Q&A Generation** | Uses a local Ollama LLM (`qwen2.5:14b`) to generate instruction pairs |
+| 🤖 **Synthetic Q&A Generation** | Uses a local Ollama LLM (`qwen2.5:1.5b`) to generate instruction pairs |
 | 🏆 **Automated Quality Filtering** | Scores each Q&A pair for accuracy & style; keeps only ≥ 6/10 |
 | ⚡ **QLoRA Training** | 4-bit NF4 quantisation + LoRA adapters for GPU-efficient fine-tuning |
 | 🚀 **Ollama Deployment** | Register the trained adapter with Ollama and chat locally |
@@ -40,7 +40,7 @@ PDF Document
            │  data/instructionquality.json
            ▼
 ┌─────────────────────────┐
-│         train            │  ← QLoRA fine-tuning on RunPod GPU (Llama 3.2-1B)
+│         train            │  ← QLoRA fine-tuning (Qwen 2.5-1.5B or 0.5B)
 └──────────┬──────────────┘
            │  complete_checkpoint/  +  final_model/
            ▼
@@ -79,15 +79,14 @@ Lora/
 ### Local Machine (Data Generation)
 - Python 3.13+
 - [uv](https://docs.astral.sh/uv/) package manager
-- [Ollama](https://ollama.com/) running locally with `qwen2.5:14b` pulled:
+- [Ollama](https://ollama.com/) running locally with `qwen2.5:1.5b` pulled:
   ```bash
-  ollama pull qwen2.5:14b
+  ollama pull qwen2.5:1.5b
   ```
 
-### GPU Server — RunPod (Training)
-- CUDA-capable GPU (A100, RTX 4090, etc. — minimum 16 GB VRAM for Llama 3.2-1B + QLoRA)
+### GPU Server (Training)
+- CUDA-capable GPU (minimum 6-8 GB VRAM for Qwen 2.5-1.5B + QLoRA, or <4 GB for 0.5B)
 - Python 3.12+, uv
-- Hugging Face account with access to [meta-llama/Llama-3.2-1B](https://huggingface.co/meta-llama/Llama-3.2-1B)
 
 ---
 
@@ -127,7 +126,7 @@ uv run syntheticdatageneration.py
 
 **Output:** `tm1data.json` — a nested JSON with Q&A pairs and source context per chunk.
 
-> **Prerequisite:** Ollama must be running (`ollama serve`) and `qwen2.5:14b` must be pulled.
+> **Prerequisite:** Ollama must be running (`ollama serve`) and `qwen2.5:7b` must be pulled.
 
 ---
 
@@ -179,8 +178,8 @@ uv run train.py
 ```
 
 **What happens during training:**
-- Loads `meta-llama/Llama-3.2-1B` in **4-bit NF4 quantisation** (QLoRA)
-- Applies **LoRA adapters** (`r=256`, `alpha=512`) to all linear layers
+- Loads `Qwen/Qwen2.5-1.5B` (or configured `BASE_MODEL`) in **4-bit NF4 quantisation** (QLoRA)
+- Applies **LoRA adapters** (`r=16`, `alpha=32`) to all linear layers
 - Trains for 50 epochs with cosine LR scheduling and gradient checkpointing
 - Saves checkpoints every 100 steps; final adapter to `./complete_checkpoint` and `./final_model`
 
@@ -188,10 +187,10 @@ uv run train.py
 
 | Param | Value |
 |---|---|
-| Base model | `meta-llama/Llama-3.2-1B` |
+| Base model | `Qwen/Qwen2.5-1.5B` |
 | Quantisation | 4-bit NF4 (bitsandbytes) |
-| LoRA rank `r` | 256 |
-| LoRA alpha | 512 |
+| LoRA rank `r` | 16 |
+| LoRA alpha | 32 |
 | LoRA dropout | 0.05 |
 | Batch size | 2 (effective: 8 with grad accum) |
 | Gradient accumulation | 4 |
@@ -234,10 +233,10 @@ ollama run my-lora-model
 
 | Variable | Required | Default | Description |
 |---|---|---|---|
-| `HF_TOKEN` | ✅ Yes | — | Hugging Face token to download gated models |
+| `HF_TOKEN` | No (for open models) | — | Hugging Face token (optional for open models like Qwen) |
 | `OLLAMA_BASE_URL` | No | `http://localhost:11434` | Ollama server URL |
-| `BASE_MODEL` | No | `meta-llama/Llama-3.2-1B` | HF model ID to fine-tune |
-| `OUTPUT_DIR` | No | `meta-llama-Llama-3.2-1B-SFT` | Training checkpoint output dir |
+| `BASE_MODEL` | No | `Qwen/Qwen2.5-1.5B` | HF model ID to fine-tune |
+| `OUTPUT_DIR` | No | `qwen2.5-1.5b-SFT` | Training checkpoint output dir |
 | `NUM_EPOCHS` | No | `50` | Number of training epochs |
 | `NUM_PROC` | No | `4` | Parallel workers for dataset preprocessing |
 
