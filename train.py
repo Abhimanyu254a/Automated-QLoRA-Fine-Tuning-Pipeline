@@ -8,7 +8,7 @@ from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
 from trl import SFTTrainer, SFTConfig
 from peft import LoraConfig, prepare_model_for_kbit_training
 
-# Load environment variables from .env file if present
+# environment 
 load_dotenv()
 
 HF_TOKEN = os.environ.get("HF_TOKEN", None)
@@ -18,13 +18,13 @@ BASE_MODEL = os.environ.get("BASE_MODEL", "Qwen/Qwen2.5-1.5B")
 OUTPUT_DIR = os.environ.get("OUTPUT_DIR", "qwen2.5-1.5b-SFT")
 NUM_EPOCHS = int(os.environ.get("NUM_EPOCHS", "50"))
 
-# ── Dataset ──────────────────────────────────────────────────────────────────
+# Dataset 
 dataset = load_dataset("data", split="train")
 print(Fore.YELLOW + f"[Dataset] Loaded {len(dataset)} samples" + Fore.RESET)
 print(Fore.YELLOW + str(dataset[2]) + Fore.RESET)
 
 
-# ── Chat template formatter ──────────────────────────────────────────────────
+# System prompt v3 
 SYSTEM_PROMPT = (
     "You are a helpful, honest and harmless assistant designed to help engineers. "
     "Think through each question logically and provide an answer. "
@@ -70,7 +70,7 @@ def format_chat_template(batch: dict, tokenizer) -> dict:
     }
 
 
-# ── Tokenizer ─────────────────────────────────────────────────────────────────
+# Tokenizer form the transfomer 
 print(Fore.CYAN + f"[Model] Loading tokenizer for {BASE_MODEL} ..." + Fore.RESET)
 tokenizer = AutoTokenizer.from_pretrained(
     BASE_MODEL,
@@ -87,7 +87,7 @@ train_dataset = dataset.map(
 print(Fore.LIGHTMAGENTA_EX + f"[Dataset] Sample after formatting:\n{train_dataset[0]}" + Fore.RESET)
 
 
-# ── Quantisation config (QLoRA: 4-bit NF4) ────────────────────────────────────
+# quantization QLoRA: 4-bit 
 quant_config = BitsAndBytesConfig(
     load_in_4bit=True,
     bnb_4bit_use_double_quant=True,
@@ -95,7 +95,7 @@ quant_config = BitsAndBytesConfig(
     bnb_4bit_compute_dtype=torch.bfloat16,
 )
 
-# ── Base model ────────────────────────────────────────────────────────────────
+# Basic model 
 print(Fore.CYAN + f"[Model] Loading {BASE_MODEL} in 4-bit ..." + Fore.RESET)
 model = AutoModelForCausalLM.from_pretrained(
     BASE_MODEL,
@@ -109,7 +109,7 @@ model = AutoModelForCausalLM.from_pretrained(
 model.gradient_checkpointing_enable()
 model = prepare_model_for_kbit_training(model)
 
-# ── LoRA config ───────────────────────────────────────────────────────────────
+# LoRA config 
 peft_config = LoraConfig(
     r=16,
     lora_alpha=32,
@@ -118,7 +118,7 @@ peft_config = LoraConfig(
     task_type="CAUSAL_LM",
 )
 
-# ── Trainer ───────────────────────────────────────────────────────────────────
+# Training the Model 
 trainer = SFTTrainer(
     model=model,
     train_dataset=train_dataset,

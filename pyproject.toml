@@ -11,4 +11,7 @@ dependencies = [
     "litellm>=1.69.0",
     "pydantic>=2.0",
     "python-dotenv>=1.0",
+    "torch>=2.7.0",
+    "torchaudio>=2.11.0",
+    "torchvision>=0.22.0",
 ]

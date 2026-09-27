@@ -31,7 +31,7 @@ def llm_call(data: str, num_records: int = 5) -> dict:
         Parsed JSON dict containing the 'generated' list of Q&A pairs.
     """
     stream = completion(
-        model="ollama_chat/qwen2.5:1.5b",
+        model="ollama_chat/qwen3.5:4b",
         messages=[
             {
                 "role": "user",
@@ -55,7 +55,8 @@ def llm_call(data: str, num_records: int = 5) -> dict:
 
 if __name__ == "__main__":
     converter = DocumentConverter()
-    doc = converter.convert("./C++_Notes.pdf").document
+    doc = converter.convert("./LinuxNotesForProfessionals.pdf").document
+    print("*"*10+ '>' ,doc)
     chunker = HybridChunker()
     chunks = list(chunker.chunk(dl_doc=doc))
 
